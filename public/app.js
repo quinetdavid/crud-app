@@ -1,101 +1,109 @@
 const form = document.getElementById('item-form');
-const itemIdInput = document.getElementById('item-id');
-const nameInput = document.getElementById('name');
-const categoryInput = document.getElementById('category');
-const descriptionInput = document.getElementById('description');
+const tableBody = document.getElementById('items-table-body');
 const submitBtn = document.getElementById('submit-btn');
 const cancelBtn = document.getElementById('cancel-btn');
-const tableBody = document.getElementById('items-table-body');
 
 const API_URL = '/api/items';
+let items = []; // all records, kept in memory
 
-// READ: Fetch and display all items on load
+// ---------- READ ----------
 async function fetchItems() {
-  const response = await fetch(API_URL);
-  const items = await response.json();
+  items = await (await fetch(API_URL)).json();
+  renderTable();
+}
 
+function renderTable() {
   tableBody.innerHTML = '';
+
   if (items.length === 0) {
     tableBody.innerHTML = '<tr class="empty-row"><td colspan="4">No records yet — add one above.</td></tr>';
     return;
   }
-  items.forEach(item => {
+
+  for (const item of items) {
     const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${item.name}</td>
-      <td>${item.category}</td>
-      <td>${item.description || '-'}</td>
-      <td>
-        <button class="edit-btn" onclick="startEdit('${item._id}', '${escapeHtml(item.name)}', '${escapeHtml(item.category)}', '${escapeHtml(item.description || '')}')">✏️ Edit</button>
-        <button class="delete-btn" onclick="deleteItem('${item._id}')">🗑️ Delete</button>
-      </td>
-    `;
+
+    const cells = [item.name, item.category, item.description || '-'].map(text => {
+      const td = document.createElement('td');
+      td.textContent = text; // safe: no HTML injection
+      return td;
+    });
+
+    const actions = document.createElement('td');
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-btn';
+    editBtn.textContent = '✏️ Edit';
+    editBtn.dataset.id = item._id;
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-btn';
+    delBtn.textContent = '🗑️ Delete';
+    delBtn.dataset.id = item._id;
+    actions.append(editBtn, delBtn);
+
+    row.append(...cells, actions);
     tableBody.appendChild(row);
-  });
+  }
 }
 
-// CREATE & UPDATE: Handle form submission
+// ---------- CREATE / UPDATE ----------
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const id = itemIdInput.value;
+  const id = document.getElementById('item-id').value;
   const payload = {
-    name: nameInput.value,
-    category: categoryInput.value,
-    description: descriptionInput.value
+    name: document.getElementById('name').value,
+    category: document.getElementById('category').value,
+    description: document.getElementById('description').value
   };
 
-  if (id) {
-    // UPDATE existing record
-    await fetch(`${API_URL}/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  } else {
-    // CREATE new record
-    await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  }
+  // PUT if editing an existing record, POST otherwise
+  await fetch(id ? `${API_URL}/${id}` : API_URL, {
+    method: id ? 'PUT' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
 
   resetForm();
   fetchItems();
 });
 
-// Populate form for editing
-function startEdit(id, name, category, description) {
-  itemIdInput.value = id;
-  nameInput.value = name;
-  categoryInput.value = category;
-  descriptionInput.value = description;
-  submitBtn.textContent = '💾 Save';
-  cancelBtn.classList.remove('hidden');
-}
+// ---------- EDIT ----------
+tableBody.addEventListener('click', (e) => {
+  const id = e.target.dataset.id;
+  if (!id) return;
 
-// Reset form back to Create mode
-function resetForm() {
-  form.reset();
-  itemIdInput.value = '';
-  submitBtn.textContent = '➕ Add';
-  cancelBtn.classList.add('hidden');
-}
+  if (e.target.classList.contains('edit-btn')) {
+    const item = items.find(i => i._id === id);
+    document.getElementById('item-id').value = item._id;
+    document.getElementById('name').value = item.name;
+    document.getElementById('category').value = item.category;
+    document.getElementById('description').value = item.description || '';
+    submitBtn.textContent = '💾 Save';
+    cancelBtn.classList.remove('hidden');
+    document.getElementById('name').focus();
+  }
 
-cancelBtn.addEventListener('click', resetForm);
+  if (e.target.classList.contains('delete-btn')) {
+    deleteItem(id);
+  }
+});
 
-// DELETE: Remove a record
+// ---------- DELETE ----------
 async function deleteItem(id) {
   if (!confirm('Are you sure you want to delete this record?')) return;
   await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
   fetchItems();
 }
 
-// Prevent quote issues in inline onclick attributes
-function escapeHtml(text) {
-  return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+// ---------- RESET ----------
+function resetForm() {
+  form.reset();
+  document.getElementById('item-id').value = '';
+  submitBtn.textContent = '➕ Add';
+  cancelBtn.classList.add('hidden');
 }
+
+cancelBtn.addEventListener('click', resetForm);
 
 // Initial load
 fetchItems();
