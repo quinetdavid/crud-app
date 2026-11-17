@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB CRUD Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Database Record Manager</h1>
+    <p class="subtitle">Manage your MongoDB records — create, edit and delete in one click.</p>
+
+    <!-- Form for Create and Update -->
+    <form id="item-form">
+      <input type="hidden" id="item-id">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" placeholder="Enter a name" required>
+      </div>
+      <div class="form-group">
+        <label for="category">Category</label>
+        <input type="text" id="category" placeholder="e.g. course, tool, task" required>
+      </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <input type="text" id="description" placeholder="Optional details">
+      </div>
+      <div class="form-actions">
+        <button type="submit" id="submit-btn">➕ Add</button>
+        <button type="button" id="cancel-btn" class="hidden">✖ Cancel</button>
+      </div>
+    </form>
+
+    <!-- Table for Read, Edit, Delete -->
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="items-table-body">
+        <!-- Rows inserted dynamically by app.js -->
+      </tbody>
+    </table>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
