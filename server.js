@@ -10,8 +10,8 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Connect to MongoDB (Atlas in production via MONGODB_URI, local otherwise)
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/crud_database')
+// Connect to MongoDB (Atlas in production via MONGODB_URI or mongodb, local otherwise)
+mongoose.connect(process.env.MONGODB_URI || process.env.mongodb || 'mongodb://127.0.0.1:27017/crud_database')
   .then(() => console.log('Connected to MongoDB successfully'))
   .catch(err => console.error('MongoDB connection error:', err));
 
