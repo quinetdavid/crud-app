@@ -11,7 +11,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Connect to MongoDB (Atlas in production via MONGODB_URI or mongodb, local otherwise)
-mongoose.connect(process.env.MONGODB_URI || process.env.mongodb || 'mongodb://127.0.0.1:27017/crud_database')
+const mongoUri = process.env.MONGODB_URI || process.env.mongodb || 'mongodb://127.0.0.1:27017/crud_database';
+console.log('MongoDB URI:', mongoUri);
+mongoose.connect(mongoUri)
   .then(() => console.log('Connected to MongoDB successfully'))
   .catch(err => console.error('MongoDB connection error:', err));
 
